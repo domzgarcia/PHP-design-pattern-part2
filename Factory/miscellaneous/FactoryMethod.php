@@ -15,19 +15,6 @@ interface SocialNetworkConnector
     public function createPost($content): void;
 }
 
-abstract class SocialNetworkPoster
-{
-    abstract public function getSocialNetwork(): SocialNetworkConnector;
-
-    public function post($post): void
-    {   
-        $network = $this->getSocialNetwork();
-        $network->logIn();
-        $network->createPost($post);
-        $network->logOut();
-    }
-}
-
 # Create Connectors
 class FacebookConnector implements SocialNetworkConnector
 {
@@ -74,18 +61,28 @@ class LinkedInConnector implements SocialNetworkConnector
     }
 }
 
-# Create Posters
+
+abstract class SocialNetworkPoster 
+{
+    private $email, $password;
+    abstract public function getConnector(): SocialNetworkConnector;
+    
+    public function post($content){
+        $connector = $this->getConnector();
+        $connector->login();
+        $connector->createPost($content);
+        $connector->logOut();
+    }
+}
+
 class FacebookPoster extends SocialNetworkPoster
 {
     private $email, $password;
-
-    public function __construct(string $email, $password)
-    {
+    public function __construct(string $email, string $password) {
         $this->email = $email;
         $this->password = $password;
     }
-
-    public function getSocialNetwork(): SocialNetworkConnector
+    public function getConnector(): SocialNetworkConnector
     {
         return new FacebookConnector($this->email, $this->password);
     }
@@ -94,23 +91,26 @@ class FacebookPoster extends SocialNetworkPoster
 class LinkedInPoster extends SocialNetworkPoster
 {
     private $email, $password;
-
-    public function __construct(string $email, $password)
+    public function __construct(string $email, string $password)
     {
         $this->email = $email;
         $this->password = $password;
     }
-
-    public function getSocialNetwork(): SocialNetworkConnector
+    public function getConnector(): SocialNetworkConnector
     {
         return new LinkedInConnector($this->email, $this->password);
     }
 }
+
 
 function execution(SocialNetworkPoster $creator): void
 {
     $creator->post("Hello World!");
 }
 
-execution(new FacebookPoster("johndoe@tester.com","******"));
-execution(new LinkedInPoster("johndoe@tester.com","******"));
+# execute your code
+execution(new FacebookPoster("johndoe@facebook.com","******"));
+
+echo '<br/>';
+
+execution(new LinkedInPoster("johndoe@linkedin.com","******"));
