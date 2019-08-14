@@ -1,4 +1,6 @@
 <?php
+// NOTICE: Not working because the of ob_get_contents() not working properly
+
 /*
 | Definition:
 | is a creational design pattern, which solves the problem of creating entire product families without specifying their concrete classes.
@@ -9,11 +11,11 @@
 
 interface TitleTemplate 
 {
-    public function getTemlateString(): string;
+    public function getTemplateString(): string;
 }
 interface PageTemplate 
 {
-    public function getTemlateString(): string;
+    public function getTemplateString(): string;
 }
 interface TemplateRenderer
 {
@@ -26,14 +28,15 @@ interface TemplateFactory
     public function createPageTemplate(): PageTemplate;
     public function getRenderer(): TemplateRenderer;
 }
-# Adheres Twig Template for each title, page, renderer templates
-class TwigTitleTemplate implements TitleTemplate
-{
-    public function getTemlateString(): string
-    {
-        return "<h1>{{ title }}</h1>";
-    }
-}
+
+
+/*
+|-----------------------------------------------------
+| Create OWN_ Template
+|-----------------------------------------------------
+*/
+
+
 # For this time we will be creating a BasePageTemplate that will implement PageTemplate
 abstract class BasePageTemplate implements PageTemplate
 {
@@ -43,34 +46,80 @@ abstract class BasePageTemplate implements PageTemplate
         $this->titleTemplate = $titleTemplate;
     }
 }
-# Use BasePageTemplate to create Twig
-class TwigPageTemplate extends BasePageTemplate
+# Adheres OWN_ Template for each title, page, renderer templates
+class OWN_TitleTemplate implements TitleTemplate
 {
-    public function getTemlateString(): string
+    public function getTemplateString(): string
+    {
+        return "<h1>{{ title }}</h1>";
+    }
+}
+# Use BasePageTemplate to create OWN_ interface of PageTemplate
+class OWN_PageTemplate extends BasePageTemplate
+{
+    public function getTemplateString(): string
     {
         $renderedTitle = $this->titleTemplate->getTemplateString();
 return<<<HTML
 <div class="page">
     $renderedTitle
-<article class="content">{{ content }}</article>
+    <article class="content">{{ content }}</article>
 </div>
 HTML;
     }
 }
+# Use TemplateRenderer to create OWN_
+class OWN_Renderer implements TemplateRenderer
+{
+    public function render(string $templateString, array $arguments = []): string {
+        extract($arguments);
+        ob_start();
+        eval(' ?>' . $templateString . '<?php ');
+        $result = ob_get_contents();
+        ob_end_clean();
+        return $result;
+    }
+}
 
-# Define a factory that will create a TwigTemplate
-class TwigTemplateFactory implements TemplateFactory
+# Define OWN_ factory
+class OWN_TemplateFactory implements TemplateFactory
 {
     public function createTitleTemplate(): TitleTemplate
     {
-        return new TwigTitleTemplate();
+        return new OWN_TitleTemplate;
     }
     public function createPageTemplate(): PageTemplate
     {
-        return 0;
+        return new OWN_PageTemplate($this->createTitleTemplate());
     }
     public function getRenderer(): TemplateRenderer
     {
-        return 0;
+        return new OWN_Renderer;
     }
 }
+
+# Usage
+class Page 
+{
+    public $title;
+    public $content;
+    public function __construct($title, $content)
+    {
+        $this->title = $title;
+        $this->content = $content;
+    }
+    public function render(TemplateFactory $factory): string
+    {
+        $pageTemplate = $factory->createPageTemplate();
+        $renderer = $factory->getRenderer();
+
+        return $renderer
+            ->render($pageTemplate->getTemplateString(), [
+                    'title' => $this->title,
+                    'content' => $this->content,
+                ]);
+    }
+}
+
+$page = new Page('Sample Page', 'This is the body.');
+echo $page->render(new OWN_TemplateFactory);
