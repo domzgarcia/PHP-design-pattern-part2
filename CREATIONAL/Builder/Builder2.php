@@ -73,7 +73,7 @@ class BurgerBuilder
     }
 }
 
-$burger = (new BurgerBuilder(14))
+$burger = (new BurgerBuilder(10))
     ->addPeperoni()
     ->addCheese()
     ->addLettuce()
