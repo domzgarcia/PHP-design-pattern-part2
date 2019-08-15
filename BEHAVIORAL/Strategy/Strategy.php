@@ -36,7 +36,9 @@ class OrderController
         echo "Controller: GET request to $url <br/>";
         $path = parse_url($url, PHP_URL_PATH);
         $query = parse_url($url, PHP_URL_QUERY);
-        parse_str($query, $data);
+        $str = parse_str($query, $data);
+
+        
 
         if( preg_match('#^/orders?$#', $path, $matches) ) {
             $this->getAllOrders();
@@ -44,6 +46,11 @@ class OrderController
             $order = Order::get($matches[1]);
 
             $paymentMethod = PaymentFactory::getPaymentMethod($matches[2]);
+
+            echo "<pre>";
+            // print_r("1 " . $query);
+            // print_r("2 " . $data);
+            print_r($matches);
 
             if( ! isset($matches[3]) ) {
                 $this->getPayment($paymentMethod, $order, $data);
@@ -110,13 +117,13 @@ $controller->post("/orders", [
 
 echo "<br/> Client: List my orders, please <br/>";
 
-$controller->get("/orders");
+// $controller->get("/orders");
 
 echo "<br/> Client: I'd like to pay for the second, show me the payment form <br/>";
 
 echo "<br/>";
 
-$controller->get("/order/1/payment/cc");
+// $controller->get("/order/1/payment/cc");
 
 echo "<br/>";
 
