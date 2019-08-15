@@ -4,7 +4,8 @@
 | Builder
 | Definition:
 | which allows constructing complex objects step by step and
-| doesn’t require products to have a common interface. That makes it possible to produce different products using the same construction process.
+| doesn’t require products to have a common interface. 
+| That makes it possible to produce different products using the same construction process.
 |
 | Author:
 | RefactoringGuru
